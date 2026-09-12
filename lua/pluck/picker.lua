@@ -63,11 +63,12 @@ function M.snacks(sessions, opts)
       if on_select then
         on_select(item.session)
       else
-        vim.api.nvim_exec_autocmds("User", {
-          pattern = "PluckSessionSelected",
-          data = item.session,
-        })
+        require("pluck").open_session(item.session, opts.session_window)
       end
+      vim.api.nvim_exec_autocmds("User", {
+        pattern = "PluckSessionSelected",
+        data = item.session,
+      })
     end,
   }, opts.snacks or {})
   return snacks.picker.pick(picker_opts)

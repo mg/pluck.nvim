@@ -47,8 +47,19 @@ Load normalized sessions, ordered newest first, with: >lua
 <
 Use `require("pluck").picker_items()` for generic picker items, or
 `require("pluck").pick()` to open a snacks.nvim picker. Confirming calls the
-configured `on_select(session)` callback. Without a callback it emits the
-`User PluckSessionSelected` autocommand with the session in `event.data`.
+configured `on_select(session)` callback. Without a callback it opens a list
+of files referenced by that session, newest first.
+
+In the file list, use j/k to move and <Space> to select. <CR> closes the
+window and loads selected files into quickfix. If nothing is selected, all
+files are loaded. q and <Esc> close without changing quickfix.
+
+The selector uses a floating window by default. Set `window.style` to
+"tab", "split", or "vsplit" to use a different layout. Its key mappings are
+configured under `keys.toggle`, `keys.confirm`, and `keys.close`.
+
+Use `require("pluck").list_references(session)` to access the normalized,
+newest-first references directly.
 
 Limit discovery to selected harnesses with: >lua
 

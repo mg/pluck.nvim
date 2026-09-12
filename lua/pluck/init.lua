@@ -33,6 +33,40 @@ function M.picker_items(options)
   return require("pluck.picker").items(result.sessions), result.warnings
 end
 
+---List files referenced by one normalized session, newest reference first.
+---@param session table
+---@param options? table
+---@return { references: table[], warnings: table[] }
+function M.list_references(session, options)
+  local config = require("pluck.config")
+  local reference_options = vim.tbl_deep_extend("force", {}, {
+    sqlite_command = config.options.sessions.sqlite_command,
+    command_timeout_ms = config.options.sessions.command_timeout_ms,
+  }, config.options.references, (options or {}).references or {})
+  return require("pluck.reference").list(session, reference_options)
+end
+
+---Open the referenced-file selector for a normalized session.
+---@param session table
+---@param options? table
+---@return table
+function M.open_session(session, options)
+  options = options or {}
+  local config = require("pluck.config")
+  local result = M.list_references(session, options)
+  for _, warning in ipairs(result.warnings) do
+    vim.notify(warning.message, vim.log.levels.WARN, { title = "pluck.nvim" })
+  end
+  local ui_options = vim.tbl_deep_extend("force", {
+    window = config.options.window,
+    keys = config.options.keys,
+    open_quickfix = config.options.open_quickfix,
+  }, options)
+  local state = require("pluck.ui").open(session, result.references, ui_options)
+  state.warnings = result.warnings
+  return state
+end
+
 ---Open the session list in snacks.nvim.
 ---@param options? table
 ---@return any

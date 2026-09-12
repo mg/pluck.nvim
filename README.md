@@ -96,11 +96,31 @@ require("pluck").pick({
 })
 ```
 
-Without `on_select`, confirming emits the `User PluckSessionSelected`
-autocommand with the session in `event.data`. Harness icons are configurable:
+Without `on_select`, confirming opens the session's referenced-file selector.
+The selector is ordered by most recent reference. Use `j`/`k` to move,
+`<Space>` to toggle files, and `<CR>` to close it and populate the quickfix
+list. If nothing is selected, `<CR>` loads every listed file. `q` or `<Esc>`
+closes without changing quickfix.
+
+The selector can be a floating window, tab, horizontal split, or vertical
+split:
 
 ```lua
 require("pluck").setup({
+  window = {
+    style = "float", -- "float", "tab", "split", or "vsplit"
+    width = 0.8,
+    height = 0.7,
+    border = "rounded",
+  },
+  keys = {
+    next = "j",
+    prev = "k",
+    toggle = "<Space>",
+    confirm = "<CR>",
+    close = { "q", "<Esc>" },
+  },
+  open_quickfix = true,
   sessions = {
     icons = {
       pi = "π",
@@ -109,6 +129,14 @@ require("pluck").setup({
     },
   },
 })
+```
+
+Every confirmation also emits the `User PluckSessionSelected` autocommand with
+the session in `event.data`. To build another UI, use:
+
+```lua
+local result = require("pluck").list_references(session)
+-- result.references is newest first
 ```
 
 Reading current OpenCode databases requires the `sqlite3` executable. Override

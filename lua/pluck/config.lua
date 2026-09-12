@@ -17,6 +17,21 @@ M.defaults = {
       opencode = "󰘦",
     },
   },
+  references = {},
+  window = {
+    style = "float",
+    width = 0.8,
+    height = 0.7,
+    border = "rounded",
+  },
+  keys = {
+    next = "j",
+    prev = "k",
+    toggle = "<Space>",
+    confirm = "<CR>",
+    close = { "q", "<Esc>" },
+  },
+  open_quickfix = true,
   harnesses = {
     pi = {
       enabled = true,

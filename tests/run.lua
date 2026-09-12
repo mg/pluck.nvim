@@ -20,8 +20,15 @@ local claude_file = root .. "/claude/projects/custom/claude-session.jsonl"
 local opencode_file = root .. "/opencode/storage/session/project/opencode-session.json"
 local opencode_db = root .. "/opencode/custom.db"
 
-vim.fn.writefile({ [[{"type":"session","id":"pi-test","cwd":"/tmp/pi"}]] }, pi_file)
-vim.fn.writefile({ [[{"sessionId":"claude-test","slug":"claude-title"}]] }, claude_file)
+vim.fn.writefile({
+  [[{"type":"session","id":"pi-test","cwd":"/tmp/pi"}]],
+  [[{"type":"message","timestamp":"2025-01-01T00:03:00Z","message":{"content":[{"type":"toolCall","name":"read","arguments":{"path":"a.lua"}}]}}]],
+  [[{"type":"message","timestamp":"2025-01-01T00:01:00Z","message":{"content":[{"type":"toolCall","name":"edit","arguments":{"path":"b.lua"}}]}}]],
+  [[{"type":"message","timestamp":"2025-01-01T00:02:00Z","message":{"content":[{"type":"toolCall","name":"read","arguments":{"path":"./a.lua"}}]}}]],
+}, pi_file)
+vim.fn.writefile({
+  [[{"sessionId":"claude-test","slug":"claude-title","cwd":"/tmp/claude","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"tool_use","name":"Read","input":{"file_path":"lib/test.lua"}}]}}]],
+}, claude_file)
 vim.fn.writefile({ [[{"id":"opencode-test","title":"opencode-title"}]] }, opencode_file)
 vim.fn.writefile({ "sqlite fixture placeholder" }, opencode_db)
 local uv = vim.uv or vim.loop
@@ -82,6 +89,68 @@ assert_equal(picker.items[1].session.id, "opencode-test")
 picker.confirm({ close = function() end }, picker.items[1])
 assert_equal(selected.id, "opencode-test")
 _G.Snacks = nil
+
+local pi_session
+for _, session in ipairs(listed.sessions) do
+  if session.id == "pi-test" then
+    pi_session = session
+  end
+end
+local references = require("pluck").list_references(pi_session)
+assert_equal(#references.references, 2)
+assert_equal(references.references[1].path, "/tmp/pi/a.lua")
+assert_equal(references.references[2].path, "/tmp/pi/b.lua")
+
+local claude_session
+for _, session in ipairs(listed.sessions) do
+  if session.id == "claude-test" then
+    claude_session = session
+  end
+end
+local claude_references = require("pluck").list_references(claude_session)
+assert_equal(claude_references.references[1].path, "/tmp/claude/lib/test.lua")
+
+if vim.fn.executable("sqlite3") == 1 then
+  local reference_db = root .. "/references.db"
+  local part = vim.json
+    .encode({
+      type = "tool",
+      tool = "read",
+      state = { input = { filePath = "src/quoted.lua" } },
+    })
+    :gsub("'", "''")
+  local sql = table.concat({
+    "create table message(id text, session_id text, time_created integer);",
+    "create table part(id text, message_id text, time_created integer, data text);",
+    "insert into message values('m1','odd''id',1);",
+    ("insert into part values('p1','m1',2,'%s');"):format(part),
+  }, " ")
+  assert_equal(vim.fn.system({ "sqlite3", reference_db, sql }), "")
+  local open_references = require("pluck").list_references({
+    id = "odd'id",
+    harness = "opencode",
+    kind = "database",
+    path = reference_db,
+    cwd = "/tmp/open",
+  })
+  assert_equal(open_references.references[1].path, "/tmp/open/src/quoted.lua")
+end
+
+local selector = require("pluck").open_session(pi_session, {
+  window = { style = "float", width = 50, height = 10 },
+  open_quickfix = false,
+})
+selector.confirm()
+local quickfix = vim.fn.getqflist()
+assert_equal(#quickfix, 2, "confirming without selections should load every reference")
+
+local selected_selector = require("pluck").open_session(pi_session, {
+  window = { style = "float", width = 50, height = 10 },
+  open_quickfix = false,
+})
+selected_selector.selected[2] = true
+selected_selector.confirm()
+assert_equal(#vim.fn.getqflist(), 1, "only selected references should be loaded")
 
 local pi_only = require("pluck").find_sessions({ harnesses = { "pi" } })
 assert_equal(#pi_only.files, 1)
