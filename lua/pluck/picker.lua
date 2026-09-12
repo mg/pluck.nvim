@@ -17,6 +17,17 @@ function M.items(sessions)
       idx = index,
       text = table.concat({ session.title or session.id, location or "", session.harness }, " "),
       file = session.kind == "transcript" and session.path or nil,
+      preview = {
+        text = table.concat({
+          "Harness: " .. session.harness,
+          "Title:   " .. (session.title or session.id),
+          "Project: " .. (session.cwd or "unknown"),
+          "Storage: " .. session.path,
+          "Updated: " .. tostring(session.updated_at or "unknown"),
+        }, "\n"),
+        ft = "text",
+        loc = false,
+      },
       session = session,
     }
   end
@@ -53,6 +64,7 @@ function M.snacks(sessions, opts)
     title = "Agent Sessions",
     items = M.items(sessions),
     format = format,
+    preview = "preview",
     sort = { fields = { "idx" } },
     matcher = { sort_empty = false },
     confirm = function(picker, item)

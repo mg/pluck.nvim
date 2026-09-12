@@ -71,6 +71,7 @@ assert_equal(listed.sessions[3].id, "pi-test")
 local picker_items = require("pluck").picker_items()
 assert_equal(picker_items[1].session.id, "opencode-test")
 assert_equal(picker_items[1].idx, 1)
+assert_equal(type(picker_items[1].preview.text), "string")
 
 local selected
 _G.Snacks = {
@@ -86,6 +87,7 @@ local picker = require("pluck").pick({
   end,
 })
 assert_equal(picker.items[1].session.id, "opencode-test")
+assert_equal(picker.preview, "preview")
 picker.confirm({ close = function() end }, picker.items[1])
 assert_equal(selected.id, "opencode-test")
 _G.Snacks = nil
