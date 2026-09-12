@@ -1,0 +1,66 @@
+*pluck.txt*                          A Neovim plugin written in Lua
+
+==============================================================================
+CONTENTS                                                    *pluck-contents*
+
+1. Setup ..................................................... |pluck-setup|
+2. Session discovery ..................................... |pluck-discovery|
+3. Commands ............................................... |pluck-commands|
+
+==============================================================================
+SETUP                                                          *pluck-setup*
+
+Call setup with optional settings: >lua
+
+  require("pluck").setup({
+    include_defaults = true,
+    harnesses = {
+      pi = { files = {}, roots = {} },
+      claude = { files = {}, roots = {} },
+      opencode = { files = {}, roots = {} },
+    },
+  })
+<
+The files and roots lists add non-standard session locations. Set
+include_defaults to false to search only configured locations.
+
+==============================================================================
+SESSION DISCOVERY                                           *pluck-discovery*
+
+Find session files for pi, Claude Code, and OpenCode: >lua
+
+  local result = require("pluck").find_sessions()
+  for _, file in ipairs(result.files) do
+    print(file.harness, file.kind, file.path)
+  end
+<
+The result contains `files` and `warnings`. A file entry contains `harness`,
+`path`, `kind`, `source`, and `root`. Current OpenCode sessions use one shared
+SQLite database, represented with kind `database`.
+
+Load normalized sessions, ordered newest first, with: >lua
+
+  local result = require("pluck").list_sessions()
+  for _, session in ipairs(result.sessions) do
+    print(session.icon, session.title, session.cwd)
+  end
+<
+Use `require("pluck").picker_items()` for generic picker items, or
+`require("pluck").pick()` to open a snacks.nvim picker. Confirming calls the
+configured `on_select(session)` callback. Without a callback it emits the
+`User PluckSessionSelected` autocommand with the session in `event.data`.
+
+Limit discovery to selected harnesses with: >lua
+
+  require("pluck").find_sessions({ harnesses = { "pi", "claude" } })
+<
+==============================================================================
+COMMANDS                                                    *pluck-commands*
+
+                                                *:PluckHealth*
+:PluckHealth            Run the pluck health checks.
+
+                                                *:PluckSessions*
+:PluckSessions          Open discovered sessions in a snacks.nvim picker.
+
+vim:tw=78:ts=8:noet:ft=help:norl:
