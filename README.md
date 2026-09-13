@@ -33,3 +33,70 @@ vim.keymap.set("n", "<leader>ap", function()
   require("pluck").pick()
 end, { desc = "Pick Pluck Session" })
 ```
+
+## Configuration
+
+Pass any overrides to `setup()`; the defaults are shown below:
+
+```lua
+require("pluck").setup({
+  enabled = true,
+  include_defaults = true, -- Search the harnesses' standard locations.
+  limits = {
+    max_depth = 4,         -- Maximum directory traversal depth.
+    max_files = 10000,     -- Maximum filesystem entries inspected per harness.
+  },
+  sessions = {
+    max_metadata_lines = 500,
+    sqlite_command = "sqlite3",
+    command_timeout_ms = 2000,
+    icons = {
+      pi = "π",
+      claude = "󰚩",
+      opencode = "󰘦",
+    },
+  },
+  references = {
+    -- Optional sqlite_command and command_timeout_ms overrides used when
+    -- reading references from OpenCode sessions.
+  },
+  window = {
+    style = "float", -- "float", "tab", "split", or "vsplit"
+    width = 0.8,      -- Fraction of the editor, or an absolute column count.
+    height = 0.7,     -- Fraction of the editor, or an absolute line count.
+    border = "rounded",
+  },
+  keys = {
+    next = "j",
+    prev = "k",
+    toggle = "<Space>",
+    confirm = "<CR>",
+    close = { "q", "<Esc>" },
+  },
+  open_quickfix = true,
+  harnesses = {
+    pi = {
+      enabled = true,
+      files = {}, -- Additional exact session files.
+      roots = {}, -- Additional directories to search.
+    },
+    claude = {
+      enabled = true,
+      files = {},
+      roots = {},
+    },
+    opencode = {
+      enabled = true,
+      files = {}, -- JSON session files or SQLite databases.
+      roots = {},
+      command = { "opencode" },
+      command_timeout_ms = 2000,
+      detect_command = true, -- Detect the database with `opencode db path`.
+    },
+  },
+})
+```
+
+Set `include_defaults = false` to search only explicitly configured `files` and
+`roots`. `references.sqlite_command` and `references.command_timeout_ms`
+inherit their values from `sessions` when omitted.

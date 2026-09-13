@@ -25,6 +25,9 @@ end
 ---@return { files: table[], warnings: table[] }
 function M.find(options)
   options = options or {}
+  if config.options.enabled == false then
+    return { files = {}, warnings = {} }
+  end
   local cwd = fs.expand(options.cwd or uv.cwd(), uv.cwd())
   local selected = options.harnesses or order
   local files = {}
