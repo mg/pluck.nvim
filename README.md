@@ -17,5 +17,5 @@ vim.pack.add({
 require("pluck").setup()
 vim.keymap.set("n", "<leader>ap", function()
   require("pluck").pick()
-end, { desc = "Pick Agent Session" })
+end, { desc = "Pick Pluck Session" })
 ```

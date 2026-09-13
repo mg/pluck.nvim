@@ -61,7 +61,7 @@ function M.snacks(sessions, opts)
 
   local on_select = opts.on_select
   local picker_opts = vim.tbl_deep_extend("force", {
-    title = "Agent Sessions",
+    title = "Pluck Session",
     items = M.items(sessions),
     format = format,
     preview = "preview",
